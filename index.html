@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🍎 Obstschnippeln</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --green:       #4f8a3b;
+            --green-dark:  #2f5a22;
+            --green-light: #e6f2dd;
+            --accent:      #e4572e;
+            --bg:          #f8faf4;
+            --text:        #263322;
+            --gray:        #6c7a66;
+            --border:      #d9e6cf;
+            --red:         #c0392b;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg); color: var(--text);
+            line-height: 1.5; min-height: 100vh;
+        }
+
+        header { background: var(--green-dark); color: #fff; padding: 1.25rem 1rem 1rem; text-align: center; }
+        header h1 { font-size: 1.5rem; font-weight: 700; }
+        header p  { font-size: 0.82rem; opacity: 0.8; margin-top: 0.2rem; }
+
+        main { max-width: 600px; margin: 0 auto; padding: 1rem; }
+
+        .info-box {
+            background: var(--green-light); border-left: 4px solid var(--green);
+            padding: 0.7rem 0.9rem; border-radius: 0 8px 8px 0;
+            margin-bottom: 1.1rem; font-size: 0.85rem; color: var(--green-dark);
+        }
+
+        .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; gap: 0.5rem; }
+        .toolbar label { font-size: 0.8rem; color: var(--gray); display: flex; align-items: center; gap: 0.35rem; cursor: pointer; }
+
+        .month-title {
+            font-size: 0.95rem; font-weight: 700; color: var(--green-dark);
+            margin: 1.1rem 0 0.5rem; padding-bottom: 0.3rem; border-bottom: 2px solid var(--border);
+        }
+
+        .termin-card {
+            background: #fff; border: 1px solid var(--border); border-radius: 10px;
+            padding: 0.7rem 0.9rem; margin-bottom: 0.5rem;
+        }
+        .termin-card.next   { border-color: var(--green); box-shadow: 0 0 0 2px var(--green-light); }
+        .termin-card.past   { opacity: 0.55; }
+        .termin-card.closed { background: #f1f1ee; }
+        .termin-head { display: flex; align-items: center; gap: 0.6rem; }
+        .termin-date { font-weight: 700; font-size: 0.95rem; }
+        .termin-kw   { font-size: 0.75rem; color: var(--gray); }
+        .termin-note { font-size: 0.78rem; color: var(--accent); font-weight: 600; }
+        .spacer { flex: 1; }
+        .badge { font-size: 0.7rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 99px; background: var(--green-light); color: var(--green-dark); }
+        .badge.full { background: #f3dcd6; color: var(--red); }
+
+        .chips { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.5rem; }
+        .chip {
+            background: var(--green-light); color: var(--green-dark);
+            border-radius: 99px; padding: 0.2rem 0.65rem; font-size: 0.82rem; font-weight: 600;
+            display: inline-flex; align-items: center; gap: 0.3rem;
+        }
+        .chip button { background: none; border: none; color: var(--red); cursor: pointer; font-size: 0.8rem; display: none; }
+        .admin-mode .chip button { display: inline; }
+
+        .card-actions { display: flex; gap: 0.5rem; margin-top: 0.55rem; }
+        .btn-small {
+            padding: 0.4rem 0.8rem; border-radius: 8px; border: 1.5px solid var(--green);
+            background: var(--green); color: #fff; font-size: 0.82rem; font-weight: 700; cursor: pointer;
+        }
+        .btn-small:disabled { opacity: 0.45; cursor: not-allowed; }
+        .btn-small.ghost { background: #fff; color: var(--green-dark); }
+        .btn-small.danger { background: #fff; color: var(--red); border-color: var(--red); }
+        .admin-only { display: none; }
+        .admin-mode .admin-only { display: inline-block; }
+        .admin-mode div.admin-only { display: block; }
+
+        .empty-state { text-align: center; padding: 1.5rem; color: var(--gray); font-size: 0.85rem; }
+
+        /* ── FORM / MODAL ── */
+        .form-section { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 1rem; margin-top: 1.25rem; }
+        .form-section h3 { font-size: 0.95rem; color: var(--green-dark); margin-bottom: 0.7rem; }
+        .form-group { margin-bottom: 0.8rem; }
+        .form-group label { display: block; font-size: 0.82rem; font-weight: 600; color: var(--green-dark); margin-bottom: 0.3rem; }
+        .form-group input[type=text], .form-group input[type=number], .form-group input[type=date], .form-group input[type=password] {
+            width: 100%; padding: 0.6rem 0.75rem; border: 1.5px solid var(--border); border-radius: 8px;
+            font-size: 0.95rem; font-family: inherit; color: var(--text); background: var(--bg);
+        }
+        .form-group input:focus { outline: none; border-color: var(--green); }
+        .btn {
+            width: 100%; padding: 0.75rem; background: var(--green); color: #fff; border: none;
+            border-radius: 8px; font-size: 0.95rem; font-weight: 700; cursor: pointer;
+        }
+        .btn:hover { background: var(--green-dark); }
+        .btn:disabled { opacity: 0.55; cursor: not-allowed; }
+        .btn.secondary { background: #fff; color: var(--gray); border: 1.5px solid var(--border); margin-top: 0.5rem; }
+
+        .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: none; align-items: center; justify-content: center; padding: 1rem; z-index: 50; }
+        .modal-bg.show { display: flex; }
+        .modal { background: #fff; border-radius: 14px; padding: 1.2rem; width: 100%; max-width: 380px; }
+        .modal h3 { color: var(--green-dark); margin-bottom: 0.2rem; }
+        .modal p.sub { font-size: 0.82rem; color: var(--gray); margin-bottom: 0.9rem; }
+        .err { color: var(--red); font-size: 0.8rem; margin-bottom: 0.5rem; display: none; }
+
+        /* ── FOOTER / ADMIN ── */
+        .admin-bar { display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; font-size: 0.8rem; color: var(--gray); }
+        .admin-bar .on { color: var(--red); font-weight: 700; }
+        .admin-bar button { background: none; border: 1px solid var(--border); border-radius: 8px; padding: 0.3rem 0.7rem; cursor: pointer; color: var(--gray); font-size: 0.8rem; }
+
+        details.log-wrap { margin: 0.75rem 0 4rem; }
+        details.log-wrap > summary {
+            cursor: pointer; padding: 0.65rem 1rem; background: #fff; border: 1px solid var(--border);
+            border-radius: 8px; font-size: 0.82rem; font-weight: 600; color: var(--gray); list-style: none;
+        }
+        details.log-wrap > summary::-webkit-details-marker { display: none; }
+        .log-table { width: 100%; border-collapse: collapse; font-size: 0.75rem; margin-top: 0.5rem; }
+        .log-table th { text-align: left; padding: 0.4rem; color: var(--gray); border-bottom: 2px solid var(--border); }
+        .log-table td { padding: 0.4rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+
+        .toast {
+            position: fixed; bottom: 1.2rem; left: 50%; transform: translateX(-50%) translateY(80px);
+            background: var(--green-dark); color: #fff; padding: 0.6rem 1.1rem; border-radius: 99px;
+            font-size: 0.85rem; transition: transform 0.25s; z-index: 100;
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); }
+        .toast.error { background: var(--red); }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>🍎 Obstschnippeln</h1>
+    <p>Obstdienst – jeden Mittwoch</p>
+</header>
+
+<main>
+    <div class="info-box">
+        <strong>Mittwochs morgens bis zur ersten Pause (9:00 Uhr)</strong> –
+        Zubereitung des Obsttellers für die Kinder. Änderungen vorbehalten.<br>
+        Such dir einen Mittwoch aus und tipp auf „Ich übernehme“.
+    </div>
+
+    <div class="toolbar">
+        <label><input type="checkbox" id="show-past" onchange="render()"> vergangene Termine anzeigen</label>
+        <span class="badge" id="summary"></span>
+    </div>
+
+    <div id="termine"><div class="empty-state">Lade Termine …</div></div>
+
+    <!-- Admin: Termin hinzufügen -->
+    <form class="form-section admin-only" onsubmit="submitTermin(event)">
+        <h3>➕ Termin hinzufügen</h3>
+        <div class="form-group"><label>Datum</label><input type="date" id="new-datum" required></div>
+        <div class="form-group"><label>Hinweis (optional, z. B. „Ausflug“)</label><input type="text" id="new-hinweis" maxlength="60"></div>
+        <div class="form-group"><label>Benötigte Helfer</label><input type="number" id="new-max" min="1" max="20" value="2" required></div>
+        <button class="btn">Termin speichern</button>
+    </form>
+
+    <div class="admin-bar">
+        <span id="admin-status">Ansichtsmodus</span>
+        <button id="admin-btn" onclick="toggleAdmin()">🔒 Admin</button>
+    </div>
+
+    <details class="log-wrap" ontoggle="onLogToggle(this)">
+        <summary>📋 Änderungsprotokoll</summary>
+        <div id="log-content"></div>
+    </details>
+</main>
+
+<!-- Modal: Eintragen -->
+<div class="modal-bg" id="modal-helfen">
+    <div class="modal">
+        <h3 id="helfen-title">Obstdienst übernehmen</h3>
+        <p class="sub" id="helfen-sub"></p>
+        <div class="form-group"><label>Dein Name (+ Kind)</label>
+            <input type="text" id="helfen-name" maxlength="60" placeholder="z. B. Anna Müller (Mama von Ben)"
+                   onkeydown="if(event.key==='Enter')confirmHelfen()"></div>
+        <button class="btn" onclick="confirmHelfen()">Eintragen</button>
+        <button class="btn secondary" onclick="closeModal('modal-helfen')">Abbrechen</button>
+    </div>
+</div>
+
+<!-- Modal: Admin-Login -->
+<div class="modal-bg" id="modal-admin">
+    <div class="modal">
+        <h3>🔒 Admin</h3>
+        <p class="sub">Passwort eingeben</p>
+        <div class="form-group"><input type="password" id="admin-pw" onkeydown="if(event.key==='Enter')confirmAdmin()"></div>
+        <div class="err" id="admin-err">Falsches Passwort</div>
+        <button class="btn" onclick="confirmAdmin()">Anmelden</button>
+        <button class="btn secondary" onclick="closeModal('modal-admin')">Abbrechen</button>
+    </div>
+</div>
+
+<!-- Modal: Termin bearbeiten (Admin) -->
+<div class="modal-bg" id="modal-edit">
+    <div class="modal">
+        <h3>✏️ Termin bearbeiten</h3>
+        <p class="sub" id="edit-sub"></p>
+        <div class="form-group"><label>Hinweis (z. B. „Herbstferien“)</label><input type="text" id="edit-hinweis" maxlength="60"></div>
+        <div class="form-group"><label>Benötigte Helfer</label><input type="number" id="edit-max" min="1" max="20"></div>
+        <div class="form-group"><label><input type="checkbox" id="edit-gesperrt"> Gesperrt (keine Eintragung möglich, z. B. Ferien)</label></div>
+        <button class="btn" onclick="confirmEdit()">Speichern</button>
+        <button class="btn secondary" onclick="closeModal('modal-edit')">Abbrechen</button>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ────────────────────────────────────────────────────────────────
+//  KONFIGURATION  ← hier deine Werte eintragen
+// ────────────────────────────────────────────────────────────────
+const SUPABASE_URL   = 'DEINE_SUPABASE_URL';    // ← Project URL
+const SUPABASE_KEY   = 'DEIN_ANON_KEY';         // ← anon / publishable Key
+const ADMIN_PASSWORD = 'Obstdienst2026!';       // ← bitte ändern!
+
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ────────────────────────────────────────────────────────────────
+//  STATE
+// ────────────────────────────────────────────────────────────────
+let isAdmin = false;
+let termine = [];          // inkl. helfer[]
+let pendingHelfen = null;  // termin
+let pendingEdit   = null;  // termin
+let logDirty = true;
+
+// ────────────────────────────────────────────────────────────────
+//  HELPERS
+// ────────────────────────────────────────────────────────────────
+function esc(s) {
+    return s ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;') : '';
+}
+function showToast(msg, isError = false) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.className = 'toast show' + (isError ? ' error' : '');
+    clearTimeout(t._timer); t._timer = setTimeout(() => t.classList.remove('show'), 3000);
+}
+function openModal(id)  { document.getElementById(id).classList.add('show'); }
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+function parseDate(iso) { const [y,m,d] = iso.split('-').map(Number); return new Date(y, m-1, d); }
+function fmtDate(iso)   { return parseDate(iso).toLocaleDateString('de-DE', { weekday:'short', day:'2-digit', month:'2-digit', year:'numeric' }); }
+function todayIso() {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+async function logChange(tabelle, zeile_id, aktion, alter_wert, neuer_wert, geaendert_von) {
+    await db.from('change_log').insert({ tabelle, zeile_id, aktion, alter_wert, neuer_wert, geaendert_von });
+    logDirty = true;
+}
+
+// ────────────────────────────────────────────────────────────────
+//  ADMIN
+// ────────────────────────────────────────────────────────────────
+function toggleAdmin() {
+    if (isAdmin) { setAdmin(false); return; }
+    document.getElementById('admin-pw').value = '';
+    document.getElementById('admin-err').style.display = 'none';
+    openModal('modal-admin');
+    setTimeout(() => document.getElementById('admin-pw').focus(), 150);
+}
+function setAdmin(on) {
+    isAdmin = on;
+    document.body.classList.toggle('admin-mode', on);
+    const s = document.getElementById('admin-status');
+    s.textContent = on ? '⚠️ Admin aktiv' : 'Ansichtsmodus';
+    s.classList.toggle('on', on);
+    document.getElementById('admin-btn').textContent = on ? '🔓 Abmelden' : '🔒 Admin';
+    render();
+}
+function confirmAdmin() {
+    if (document.getElementById('admin-pw').value === ADMIN_PASSWORD) {
+        closeModal('modal-admin'); setAdmin(true); showToast('Admin-Modus aktiviert');
+    } else {
+        document.getElementById('admin-err').style.display = 'block';
+    }
+}
+
+// ────────────────────────────────────────────────────────────────
+//  LADEN & RENDERN
+// ────────────────────────────────────────────────────────────────
+async function load() {
+    const { data, error } = await db.from('termine').select('*, helfer(id, name, created_at)').order('datum');
+    if (error) {
+        document.getElementById('termine').innerHTML = '<div class="empty-state">⚠️ Fehler beim Laden. Ist Supabase konfiguriert?</div>';
+        return;
+    }
+    termine = data || [];
+    termine.forEach(t => t.helfer.sort((a, b) => a.created_at.localeCompare(b.created_at)));
+    render();
+}
+
+function render() {
+    const showPast = document.getElementById('show-past').checked;
+    const today = todayIso();
+    const nextId = (termine.find(t => t.datum >= today && !t.gesperrt && t.helfer.length < t.max_helfer) || {}).id;
+
+    const open = termine.filter(t => !t.gesperrt);
+    const free = open.filter(t => t.datum >= today).reduce((n, t) => n + Math.max(0, t.max_helfer - t.helfer.length), 0);
+    document.getElementById('summary').textContent = `${free} Plätze frei`;
+
+    const list = termine.filter(t => showPast || t.datum >= today);
+    const c = document.getElementById('termine');
+    if (!list.length) { c.innerHTML = '<div class="empty-state">Keine Termine vorhanden.</div>'; return; }
+
+    let html = '', lastMonth = '';
+    for (const t of list) {
+        const month = parseDate(t.datum).toLocaleDateString('de-DE', { month: 'long', year: 'numeric' });
+        if (month !== lastMonth) { html += `<div class="month-title">${month}</div>`; lastMonth = month; }
+
+        const n = t.helfer.length, full = n >= t.max_helfer;
+        const cls = ['termin-card', t.datum < today ? 'past' : '', t.gesperrt ? 'closed' : '', t.id === nextId ? 'next' : ''].join(' ');
+        const chips = t.helfer.map(h => `<span class="chip">${esc(h.name)}<button data-act="del-helfer" data-id="${h.id}" title="Entfernen">✕</button></span>`).join('');
+        const badge = t.gesperrt ? '' : `<span class="badge${full ? ' full' : ''}">${n}/${t.max_helfer}</span>`;
+
+        html += `<div class="${cls}">
+            <div class="termin-head">
+                <div>
+                    <div class="termin-date">${fmtDate(t.datum)} <span class="termin-kw">KW ${t.kw ?? ''}</span></div>
+                    ${t.hinweis ? `<div class="termin-note">${esc(t.hinweis)}</div>` : ''}
+                </div>
+                <span class="spacer"></span>${badge}
+            </div>
+            ${chips ? `<div class="chips">${chips}</div>` : ''}
+            <div class="card-actions">
+                ${t.gesperrt ? '' : `<button class="btn-small" data-act="helfen" data-id="${t.id}" ${full && !isAdmin ? 'disabled' : ''}>${full ? (isAdmin ? '+ Admin-Eintrag' : '✓ Besetzt') : '🙋 Ich übernehme'}</button>`}
+                <button class="btn-small ghost admin-only" data-act="edit" data-id="${t.id}">✏️ Bearbeiten</button>
+                <button class="btn-small danger admin-only" data-act="del-termin" data-id="${t.id}">🗑️</button>
+            </div>
+        </div>`;
+    }
+    c.innerHTML = html;
+}
+
+document.getElementById('termine').addEventListener('click', e => {
+    const b = e.target.closest('[data-act]');
+    if (!b) return;
+    const id = b.dataset.id;
+    const t = termine.find(x => x.id === id);
+    switch (b.dataset.act) {
+        case 'helfen':      openHelfen(t); break;
+        case 'edit':        openEdit(t); break;
+        case 'del-termin':  deleteTermin(t); break;
+        case 'del-helfer':  deleteHelfer(termine.flatMap(x => x.helfer.map(h => ({ ...h, termin: x }))).find(h => h.id === id)); break;
+    }
+});
+
+// ────────────────────────────────────────────────────────────────
+//  EINTRAGEN
+// ────────────────────────────────────────────────────────────────
+function openHelfen(t) {
+    pendingHelfen = t;
+    document.getElementById('helfen-sub').textContent = fmtDate(t.datum) + ' · bis 9:00 Uhr';
+    document.getElementById('helfen-name').value = '';
+    openModal('modal-helfen');
+    setTimeout(() => document.getElementById('helfen-name').focus(), 150);
+}
+
+async function confirmHelfen() {
+    if (!pendingHelfen) return;
+    const name = document.getElementById('helfen-name').value.trim();
+    if (!name) { showToast('Bitte Namen eingeben', true); return; }
+    const t = pendingHelfen;
+
+    // Aktuellen Stand prüfen (Race Condition: jemand war schneller)
+    const { count } = await db.from('helfer').select('id', { count: 'exact', head: true }).eq('termin_id', t.id);
+    if (!isAdmin && count >= t.max_helfer) {
+        closeModal('modal-helfen'); showToast('Dieser Termin ist inzwischen besetzt', true); load(); return;
+    }
+
+    const { data, error } = await db.from('helfer').insert({ termin_id: t.id, name }).select().single();
+    closeModal('modal-helfen'); pendingHelfen = null;
+    if (error) { showToast('Fehler beim Eintragen', true); return; }
+    await logChange('helfer', data.id, 'eintrag', null, { ...data, datum: t.datum }, name);
+    showToast('✅ Eingetragen!');
+    load();
+}
+
+async function deleteHelfer(h) {
+    if (!isAdmin || !h) return;
+    const by = prompt(`„${h.name}“ am ${fmtDate(h.termin.datum)} entfernen.\nWer löscht diesen Eintrag?`);
+    if (!by) return;
+    await logChange('helfer', h.id, 'loeschung', { name: h.name, datum: h.termin.datum }, null, by);
+    const { error } = await db.from('helfer').delete().eq('id', h.id);
+    if (error) { showToast('Fehler beim Löschen', true); return; }
+    showToast('Eintrag entfernt'); load();
+}
+
+// ────────────────────────────────────────────────────────────────
+//  TERMINE (Admin)
+// ────────────────────────────────────────────────────────────────
+async function submitTermin(ev) {
+    ev.preventDefault();
+    if (!isAdmin) return;
+    const datum = document.getElementById('new-datum').value;
+    const hinweis = document.getElementById('new-hinweis').value.trim() || null;
+    const max_helfer = parseInt(document.getElementById('new-max').value);
+    const { data, error } = await db.from('termine').insert({ datum, hinweis, max_helfer }).select().single();
+    if (error) { showToast(error.code === '23505' ? 'Termin existiert bereits' : 'Fehler beim Speichern', true); return; }
+    await logChange('termine', data.id, 'eintrag', null, { name: data.datum }, 'Admin');
+    ev.target.reset(); document.getElementById('new-max').value = '2';
+    showToast('✅ Termin angelegt'); load();
+}
+
+function openEdit(t) {
+    pendingEdit = t;
+    document.getElementById('edit-sub').textContent = fmtDate(t.datum);
+    document.getElementById('edit-hinweis').value = t.hinweis || '';
+    document.getElementById('edit-max').value = t.max_helfer;
+    document.getElementById('edit-gesperrt').checked = t.gesperrt;
+    openModal('modal-edit');
+}
+
+async function confirmEdit() {
+    if (!isAdmin || !pendingEdit) return;
+    const t = pendingEdit;
+    const upd = {
+        hinweis: document.getElementById('edit-hinweis').value.trim() || null,
+        max_helfer: Math.max(1, parseInt(document.getElementById('edit-max').value) || 1),
+        gesperrt: document.getElementById('edit-gesperrt').checked
+    };
+    const { error } = await db.from('termine').update(upd).eq('id', t.id);
+    closeModal('modal-edit'); pendingEdit = null;
+    if (error) { showToast('Fehler beim Speichern', true); return; }
+    await logChange('termine', t.id, 'aenderung',
+        { name: t.datum, hinweis: t.hinweis, max_helfer: t.max_helfer, gesperrt: t.gesperrt },
+        { name: t.datum, ...upd }, 'Admin');
+    showToast('Gespeichert'); load();
+}
+
+async function deleteTermin(t) {
+    if (!isAdmin) return;
+    if (!confirm(`Termin ${fmtDate(t.datum)} wirklich löschen?\nAlle Eintragungen dazu werden ebenfalls gelöscht.`)) return;
+    await logChange('termine', t.id, 'loeschung', { name: t.datum, helfer: t.helfer.map(h => h.name) }, null, 'Admin');
+    const { error } = await db.from('termine').delete().eq('id', t.id);
+    if (error) { showToast('Fehler beim Löschen', true); return; }
+    showToast('Termin gelöscht'); load();
+}
+
+// ────────────────────────────────────────────────────────────────
+//  PROTOKOLL
+// ────────────────────────────────────────────────────────────────
+const TABLE_LABELS = { termine: 'Termin', helfer: 'Helfer' };
+const ACTION_LABELS = { eintrag: '✅ Eingetragen', loeschung: '🗑️ Gelöscht', aenderung: '✏️ Geändert' };
+
+async function onLogToggle(el) {
+    if (!el.open || !logDirty) return;
+    logDirty = false;
+    const { data } = await db.from('change_log').select('*').order('zeitstempel', { ascending: false }).limit(100);
+    const c = document.getElementById('log-content');
+    if (!data || !data.length) { c.innerHTML = '<p class="empty-state">Noch keine Einträge im Protokoll.</p>'; return; }
+
+    const rows = data.map(r => {
+        const dt = new Date(r.zeitstempel);
+        const when = dt.toLocaleDateString('de-DE', { day:'2-digit', month:'2-digit', year:'2-digit' }) + ' ' +
+                     dt.toLocaleTimeString('de-DE', { hour:'2-digit', minute:'2-digit' });
+        const v = r.aktion === 'loeschung' ? r.alter_wert : r.neuer_wert;
+        const what = (v?.name || '–') + (v?.datum ? ` (${fmtDate(v.datum)})` : '');
+        return `<tr><td>${when}</td><td>${TABLE_LABELS[r.tabelle] || r.tabelle}</td><td>${ACTION_LABELS[r.aktion]}</td><td>${esc(what)}</td><td>${esc(r.geaendert_von || '–')}</td></tr>`;
+    }).join('');
+    c.innerHTML = `<table class="log-table"><thead><tr><th>Zeit</th><th>Art</th><th>Aktion</th><th>Eintrag</th><th>Von</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+load();
+</script>
+</body>
+</html>
