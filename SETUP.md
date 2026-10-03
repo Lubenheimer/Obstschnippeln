@@ -8,7 +8,12 @@ Technisch identisch zum Erntedankfest: eine einzige `index.html` auf GitHub Page
 2. **SQL Editor** → Inhalt von `setup.sql` einfügen → **Run**. Das legt die Tabellen an und trägt alle Mittwochs-Termine 04.11.2026 – 28.07.2027 ein (Ferien sind automatisch gesperrt).
 
 ## 2. Zugangsdaten eintragen
-Supabase → Project Settings → API → *Project URL* und *anon/publishable key* kopieren und oben im `<script>` von `index.html` eintragen. Dort auch `ADMIN_PASSWORD` ändern.
+Supabase → Project Settings → API → *Project URL* und *publishable key* kopieren und oben im `<script>` von `index.html` eintragen.
+
+## 2b. Admin-Konto (Passwort liegt in Supabase, nicht im Repo)
+1. Supabase → **Authentication → Users → Add user** → E-Mail + Passwort, „Auto Confirm User" anhaken.
+2. **Authentication → Sign In / Providers** → „Allow new users to sign up" **ausschalten**.
+3. Lief `setup.sql` schon vor dieser Änderung: einmalig `migrate-admin-auth.sql` im SQL-Editor ausführen.
 
 ## 3. GitHub Pages
 1. Neues **Public** Repository (z. B. `obstschnippeln`), `index.html` + `.nojekyll` hochladen.
@@ -17,7 +22,7 @@ Supabase → Project Settings → API → *Project URL* und *anon/publishable ke
 
 ## Bedienung
 - **Eltern:** Termin wählen → „Ich übernehme" → Name eingeben. Standard: 2 Helfer pro Mittwoch.
-- **Admin** (unten „🔒 Admin"): Einträge entfernen, Termine bearbeiten (Hinweis, Helferzahl, sperren), Termine hinzufügen/löschen, auch bei vollen Terminen eintragen. Alles landet im Änderungsprotokoll.
+- **Admin** (unten „🔒 Admin", Login mit E-Mail + Passwort): Einträge entfernen, Termine bearbeiten (Hinweis, Helferzahl, sperren), Termine hinzufügen/löschen, auch bei vollen Terminen eintragen. Alles landet im Änderungsprotokoll.
 
-## Hinweis zur Sicherheit
-Wie beim Erntedankfest wird das Admin-Passwort im Frontend geprüft – das schützt vor versehentlichen Änderungen, nicht vor gezielten Angriffen (Passwort steht im Quelltext). Für eine Schul-Liste ausreichend.
+## Sicherheit
+Admin-Anmeldung läuft über Supabase Auth. Termine anlegen/ändern/löschen und Eintragungen entfernen erlaubt die Datenbank nur angemeldeten Nutzern (Row Level Security) – im Repo steht kein Passwort. Eltern dürfen nur lesen und sich eintragen. Voraussetzung: Registrierung neuer Nutzer ist deaktiviert (2b.2).

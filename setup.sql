@@ -35,8 +35,8 @@ CREATE TABLE change_log (
 );
 
 -- ────────────────────────────────────────────────────────────────
---  Row Level Security – öffentlich les- und schreibbar
---  (Schutz der Admin-Funktionen erfolgt per Passwort im Frontend)
+--  Row Level Security – alle lesen und tragen sich ein;
+--  Termine anlegen/ändern und Löschen nur als angemeldeter Admin
 -- ────────────────────────────────────────────────────────────────
 ALTER TABLE termine    ENABLE ROW LEVEL SECURITY;
 ALTER TABLE helfer     ENABLE ROW LEVEL SECURITY;
@@ -46,14 +46,14 @@ CREATE POLICY "public read termine"    ON termine    FOR SELECT USING (true);
 CREATE POLICY "public read helfer"     ON helfer     FOR SELECT USING (true);
 CREATE POLICY "public read change_log" ON change_log FOR SELECT USING (true);
 
-CREATE POLICY "public insert termine"    ON termine    FOR INSERT WITH CHECK (true);
+CREATE POLICY "admin insert termine"     ON termine    FOR INSERT TO authenticated WITH CHECK (true);
 CREATE POLICY "public insert helfer"     ON helfer     FOR INSERT WITH CHECK (true);
 CREATE POLICY "public insert change_log" ON change_log FOR INSERT WITH CHECK (true);
 
-CREATE POLICY "public update termine" ON termine FOR UPDATE USING (true) WITH CHECK (true);
-
-CREATE POLICY "public delete termine" ON termine FOR DELETE USING (true);
-CREATE POLICY "public delete helfer"  ON helfer  FOR DELETE USING (true);
+-- Termine verwalten, Eintragungen löschen: nur angemeldeter Admin (Supabase Auth)
+CREATE POLICY "admin update termine" ON termine FOR UPDATE TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "admin delete termine" ON termine FOR DELETE TO authenticated USING (true);
+CREATE POLICY "admin delete helfer"  ON helfer  FOR DELETE TO authenticated USING (true);
 
 -- ────────────────────────────────────────────────────────────────
 --  Terminplan Schuljahr 2026/27
