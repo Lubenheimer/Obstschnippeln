@@ -45,34 +45,29 @@
         .view-toggle button { border: none; background: #fff; color: var(--green-dark); padding: 0.3rem 0.85rem; font-size: 0.8rem; font-weight: 700; cursor: pointer; }
         .view-toggle button.active { background: var(--green); color: #fff; }
 
-        .cal { background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: 0.75rem; }
-        .cal-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.6rem; }
-        .cal-nav h2 { font-size: 1.05rem; color: var(--green-dark); text-transform: capitalize; }
-        .cal-nav button { width: 2.1rem; height: 2.1rem; border-radius: 50%; border: 1.5px solid var(--border); background: #fff; font-size: 1.1rem; cursor: pointer; color: var(--green-dark); }
-        .cal-nav button:disabled { opacity: 0.3; cursor: default; }
-        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
-        .cal-dow { text-align: center; font-size: 0.68rem; font-weight: 700; color: var(--gray); padding-bottom: 0.2rem; }
+        main.wide { max-width: 1040px; }
+        .year-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 0.9rem; }
+        .cal { background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: 0.7rem 0.75rem 0.8rem; }
+        .cal h2 { font-size: 0.98rem; color: var(--green-dark); margin-bottom: 0.45rem; text-align: center; }
+        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+        .cal-dow { text-align: center; font-size: 0.62rem; font-weight: 700; color: var(--gray); padding-bottom: 0.15rem; }
         .cal-dow.wed { color: var(--green-dark); }
         .cal-day {
-            aspect-ratio: 1 / 1.05; border-radius: 9px; font-size: 0.78rem; color: #a9b3a3;
-            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
-            border: 2px solid transparent; background: none; font-family: inherit;
+            aspect-ratio: 1 / 1; border-radius: 8px; font-size: 0.74rem; color: #a9b3a3;
+            display: flex; align-items: center; justify-content: center;
+            border: none; background: none; font-family: inherit;
         }
         .cal-day.other { visibility: hidden; }
-        .cal-day.today .num { text-decoration: underline; text-underline-offset: 3px; }
-        .cal-day.termin { cursor: pointer; font-weight: 700; color: #fff; }
-        .cal-day.termin .num { font-size: 0.95rem; }
-        .cal-day.termin .cnt { font-size: 0.62rem; font-weight: 700; opacity: 0.95; }
+        .cal-day.today { outline: 2px solid var(--accent); outline-offset: -2px; }
+        .cal-day.termin { cursor: pointer; font-weight: 700; color: #fff; font-size: 0.85rem; }
+        .cal-day.termin:hover { filter: brightness(1.08); transform: scale(1.06); }
         .cal-day.s-free    { background: var(--green); }
-        .cal-day.s-part    { background: #e0a21b; }
         .cal-day.s-full    { background: #c9503e; }
-        .cal-day.s-closed  { background: #c9cfc4; color: #fff; cursor: pointer; }
-        .cal-day.past      { opacity: 0.45; }
-        .cal-day.selected  { border-color: var(--green-dark); box-shadow: 0 0 0 2px #fff inset; transform: scale(1.06); }
-        .legend { display: flex; flex-wrap: wrap; gap: 0.3rem 0.9rem; margin-top: 0.7rem; font-size: 0.72rem; color: var(--gray); }
-        .legend i { display: inline-block; width: 0.7rem; height: 0.7rem; border-radius: 3px; margin-right: 0.3rem; vertical-align: -1px; }
-        #detail { margin-top: 0.9rem; }
-        #detail .termin-card { margin: 0; box-shadow: 0 2px 10px rgba(47,90,34,0.12); border-color: var(--green); }
+        .cal-day.s-closed  { background: #c9cfc4; }
+        .cal-day.past      { opacity: 0.4; }
+        .legend { display: flex; flex-wrap: wrap; gap: 0.3rem 1rem; margin: 0 0 0.9rem; font-size: 0.78rem; color: var(--gray); }
+        .legend i { display: inline-block; width: 0.75rem; height: 0.75rem; border-radius: 3px; margin-right: 0.3rem; vertical-align: -1px; }
+        #detail-body .termin-card { margin: 0 0 0.8rem; }
 
         .month-title {
             font-size: 0.95rem; font-weight: 700; color: var(--green-dark);
@@ -189,21 +184,12 @@
     </div>
 
     <div id="view-cal">
-        <div class="cal">
-            <div class="cal-nav">
-                <button id="cal-prev" onclick="calMove(-1)" aria-label="Vorheriger Monat">‹</button>
-                <h2 id="cal-title"></h2>
-                <button id="cal-next" onclick="calMove(1)" aria-label="Nächster Monat">›</button>
-            </div>
-            <div class="cal-grid" id="cal-grid"></div>
-            <div class="legend">
-                <span><i style="background:var(--green)"></i>frei</span>
-                <span><i style="background:#e0a21b"></i>teilweise besetzt</span>
-                <span><i style="background:#c9503e"></i>besetzt</span>
-                <span><i style="background:#c9cfc4"></i>Ferien / kein Dienst</span>
-            </div>
+        <div class="legend">
+            <span><i style="background:var(--green)"></i>frei – tipp auf den Tag zum Eintragen</span>
+            <span><i style="background:#c9503e"></i>vergeben</span>
+            <span><i style="background:#c9cfc4"></i>Ferien / kein Dienst</span>
         </div>
-        <div id="detail"></div>
+        <div class="year-grid" id="year-grid"></div>
     </div>
 
     <div id="view-list" style="display:none">
@@ -267,6 +253,14 @@
         <div class="form-group"><label><input type="checkbox" id="edit-gesperrt"> Gesperrt (keine Eintragung möglich, z. B. Ferien)</label></div>
         <button class="btn" onclick="confirmEdit()">Speichern</button>
         <button class="btn secondary" onclick="closeModal('modal-edit')">Abbrechen</button>
+    </div>
+</div>
+
+<!-- Modal: Termin-Details -->
+<div class="modal-bg" id="modal-detail" onclick="if(event.target===this)closeModal('modal-detail')">
+    <div class="modal">
+        <div id="detail-body"></div>
+        <button class="btn secondary" style="margin-top:0" onclick="closeModal('modal-detail')">Schließen</button>
     </div>
 </div>
 
@@ -357,7 +351,7 @@ async function load() {
     render();
 }
 
-let view = 'cal', calMonth = null /* 'YYYY-MM' */, selectedId = null;
+let view = 'cal', selectedId = null;
 
 function setView(v) {
     view = v;
@@ -365,6 +359,7 @@ function setView(v) {
     document.getElementById('vt-list').classList.toggle('active', v === 'list');
     document.getElementById('view-cal').style.display  = v === 'cal'  ? '' : 'none';
     document.getElementById('view-list').style.display = v === 'list' ? '' : 'none';
+    document.querySelector('main').classList.toggle('wide', v === 'cal');
     render();
 }
 
@@ -397,56 +392,41 @@ function render() {
     document.getElementById('summary').textContent = `${free} Plätze frei`;
     if (!termine.length) {
         document.getElementById('termine').innerHTML = '<div class="empty-state">Keine Termine vorhanden.</div>';
-        document.getElementById('cal-grid').innerHTML = '<div class="empty-state" style="grid-column:1/-1">Keine Termine vorhanden.</div>';
+        document.getElementById('year-grid').innerHTML = '<div class="empty-state">Keine Termine vorhanden.</div>';
         return;
     }
-    // Auswahl/Monat initialisieren: nächster freier Termin, sonst nächster Termin, sonst letzter
-    if (!termine.some(t => t.id === selectedId)) {
-        const t = termine.find(t => t.datum >= today && !t.gesperrt && t.helfer.length < t.max_helfer)
-               || termine.find(t => t.datum >= today) || termine[termine.length - 1];
-        selectedId = t.id; calMonth = t.datum.slice(0, 7);
-    }
     if (view === 'cal') renderCalendar(); else renderList();
+    if (document.getElementById('modal-detail').classList.contains('show')) renderDetail();
 }
 
 function renderCalendar() {
     const today = todayIso();
-    const [y, m] = calMonth.split('-').map(Number);
-    const months = [...new Set(termine.map(t => t.datum.slice(0, 7)))];
-    const idx = months.indexOf(calMonth);
-    document.getElementById('cal-prev').disabled = idx <= 0;
-    document.getElementById('cal-next').disabled = idx === -1 || idx >= months.length - 1;
-    document.getElementById('cal-title').textContent = new Date(y, m - 1, 1).toLocaleDateString('de-DE', { month: 'long', year: 'numeric' });
-
     const byDate = Object.fromEntries(termine.map(t => [t.datum, t]));
-    const lead = (new Date(y, m - 1, 1).getDay() + 6) % 7;   // Montag = 0
-    const days = new Date(y, m, 0).getDate();
-    let html = ['Mo','Di','Mi','Do','Fr','Sa','So'].map((d, i) => `<div class="cal-dow${i === 2 ? ' wed' : ''}">${d}</div>`).join('');
-    for (let i = 0; i < lead; i++) html += '<div class="cal-day other"></div>';
-    for (let d = 1; d <= days; d++) {
-        const iso = `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-        const t = byDate[iso];
-        const base = 'cal-day' + (iso === today ? ' today' : '');
-        if (!t) { html += `<div class="${base}"><span class="num">${d}</span></div>`; continue; }
-        const n = t.helfer.length;
-        const st = t.gesperrt ? 'closed' : n >= t.max_helfer ? 'full' : n > 0 ? 'part' : 'free';
-        const cnt = t.gesperrt ? '–' : `${n}/${t.max_helfer}`;
-        html += `<button class="${base} termin s-${st}${iso < today ? ' past' : ''}${t.id === selectedId ? ' selected' : ''}" data-act="select" data-id="${t.id}"><span class="num">${d}</span><span class="cnt">${cnt}</span></button>`;
-    }
-    document.getElementById('cal-grid').innerHTML = html;
-
-    const sel = termine.find(t => t.id === selectedId);
-    document.getElementById('detail').innerHTML = sel ? cardHtml(sel) : '';
+    const months = [...new Set(termine.map(t => t.datum.slice(0, 7)))];
+    document.getElementById('year-grid').innerHTML = months.map(ym => {
+        const [y, m] = ym.split('-').map(Number);
+        const lead = (new Date(y, m - 1, 1).getDay() + 6) % 7;   // Montag = 0
+        const days = new Date(y, m, 0).getDate();
+        let g = ['Mo','Di','Mi','Do','Fr','Sa','So'].map((d, i) => `<div class="cal-dow${i === 2 ? ' wed' : ''}">${d}</div>`).join('');
+        for (let i = 0; i < lead; i++) g += '<div class="cal-day other"></div>';
+        for (let d = 1; d <= days; d++) {
+            const iso = `${ym}-${String(d).padStart(2, '0')}`;
+            const t = byDate[iso];
+            const base = 'cal-day' + (iso === today ? ' today' : '');
+            if (!t) { g += `<div class="${base}">${d}</div>`; continue; }
+            const st = t.gesperrt ? 'closed' : t.helfer.length >= t.max_helfer ? 'full' : 'free';
+            g += `<button class="${base} termin s-${st}${iso < today ? ' past' : ''}" data-act="select" data-id="${t.id}" title="${esc(t.hinweis || '')}">${d}</button>`;
+        }
+        const title = new Date(y, m - 1, 1).toLocaleDateString('de-DE', { month: 'long', year: 'numeric' });
+        return `<div class="cal"><h2>${title}</h2><div class="cal-grid">${g}</div></div>`;
+    }).join('');
 }
 
-function calMove(dir) {
-    const months = [...new Set(termine.map(t => t.datum.slice(0, 7)))];
-    const i = months.indexOf(calMonth) + dir;
-    if (i < 0 || i >= months.length) return;
-    calMonth = months[i];
-    const first = termine.find(t => t.datum.startsWith(calMonth));
-    if (first) selectedId = first.id;
-    renderCalendar();
+function openDetail(id) { selectedId = id; renderDetail(); openModal('modal-detail'); }
+function renderDetail() {
+    const t = termine.find(x => x.id === selectedId);
+    if (!t) { closeModal('modal-detail'); return; }
+    document.getElementById('detail-body').innerHTML = cardHtml(t);
 }
 
 function renderList() {
@@ -465,16 +445,16 @@ function renderList() {
     c.innerHTML = html;
 }
 
-document.querySelector('main').addEventListener('click', e => {
+document.body.addEventListener('click', e => {
     const b = e.target.closest('[data-act]');
     if (!b) return;
     const id = b.dataset.id;
     const t = termine.find(x => x.id === id);
     switch (b.dataset.act) {
-        case 'select':      selectedId = id; renderCalendar(); document.getElementById('detail').scrollIntoView({ behavior: 'smooth', block: 'nearest' }); break;
-        case 'helfen':      openHelfen(t); break;
-        case 'edit':        openEdit(t); break;
-        case 'del-termin':  deleteTermin(t); break;
+        case 'select':      openDetail(id); break;
+        case 'helfen':      closeModal('modal-detail'); openHelfen(t); break;
+        case 'edit':        closeModal('modal-detail'); openEdit(t); break;
+        case 'del-termin':  closeModal('modal-detail'); deleteTermin(t); break;
         case 'del-helfer':  deleteHelfer(termine.flatMap(x => x.helfer.map(h => ({ ...h, termin: x }))).find(h => h.id === id)); break;
     }
 });
@@ -596,6 +576,7 @@ async function onLogToggle(el) {
 }
 
 db.auth.getSession().then(({ data }) => { if (data.session) setAdmin(true); });
+document.querySelector('main').classList.add('wide');
 load();
 </script>
 </body>
