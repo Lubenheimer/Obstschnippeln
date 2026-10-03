@@ -41,6 +41,39 @@
         .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; gap: 0.5rem; }
         .toolbar label { font-size: 0.8rem; color: var(--gray); display: flex; align-items: center; gap: 0.35rem; cursor: pointer; }
 
+        .view-toggle { display: inline-flex; border: 1.5px solid var(--green); border-radius: 99px; overflow: hidden; }
+        .view-toggle button { border: none; background: #fff; color: var(--green-dark); padding: 0.3rem 0.85rem; font-size: 0.8rem; font-weight: 700; cursor: pointer; }
+        .view-toggle button.active { background: var(--green); color: #fff; }
+
+        .cal { background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: 0.75rem; }
+        .cal-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.6rem; }
+        .cal-nav h2 { font-size: 1.05rem; color: var(--green-dark); text-transform: capitalize; }
+        .cal-nav button { width: 2.1rem; height: 2.1rem; border-radius: 50%; border: 1.5px solid var(--border); background: #fff; font-size: 1.1rem; cursor: pointer; color: var(--green-dark); }
+        .cal-nav button:disabled { opacity: 0.3; cursor: default; }
+        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+        .cal-dow { text-align: center; font-size: 0.68rem; font-weight: 700; color: var(--gray); padding-bottom: 0.2rem; }
+        .cal-dow.wed { color: var(--green-dark); }
+        .cal-day {
+            aspect-ratio: 1 / 1.05; border-radius: 9px; font-size: 0.78rem; color: #a9b3a3;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+            border: 2px solid transparent; background: none; font-family: inherit;
+        }
+        .cal-day.other { visibility: hidden; }
+        .cal-day.today .num { text-decoration: underline; text-underline-offset: 3px; }
+        .cal-day.termin { cursor: pointer; font-weight: 700; color: #fff; }
+        .cal-day.termin .num { font-size: 0.95rem; }
+        .cal-day.termin .cnt { font-size: 0.62rem; font-weight: 700; opacity: 0.95; }
+        .cal-day.s-free    { background: var(--green); }
+        .cal-day.s-part    { background: #e0a21b; }
+        .cal-day.s-full    { background: #c9503e; }
+        .cal-day.s-closed  { background: #c9cfc4; color: #fff; cursor: pointer; }
+        .cal-day.past      { opacity: 0.45; }
+        .cal-day.selected  { border-color: var(--green-dark); box-shadow: 0 0 0 2px #fff inset; transform: scale(1.06); }
+        .legend { display: flex; flex-wrap: wrap; gap: 0.3rem 0.9rem; margin-top: 0.7rem; font-size: 0.72rem; color: var(--gray); }
+        .legend i { display: inline-block; width: 0.7rem; height: 0.7rem; border-radius: 3px; margin-right: 0.3rem; vertical-align: -1px; }
+        #detail { margin-top: 0.9rem; }
+        #detail .termin-card { margin: 0; box-shadow: 0 2px 10px rgba(47,90,34,0.12); border-color: var(--green); }
+
         .month-title {
             font-size: 0.95rem; font-weight: 700; color: var(--green-dark);
             margin: 1.1rem 0 0.5rem; padding-bottom: 0.3rem; border-bottom: 2px solid var(--border);
@@ -148,11 +181,35 @@
     </div>
 
     <div class="toolbar">
-        <label><input type="checkbox" id="show-past" onchange="render()"> vergangene Termine anzeigen</label>
+        <div class="view-toggle">
+            <button id="vt-cal" class="active" onclick="setView('cal')">📅 Kalender</button>
+            <button id="vt-list" onclick="setView('list')">📋 Liste</button>
+        </div>
         <span class="badge" id="summary"></span>
     </div>
 
-    <div id="termine"><div class="empty-state">Lade Termine …</div></div>
+    <div id="view-cal">
+        <div class="cal">
+            <div class="cal-nav">
+                <button id="cal-prev" onclick="calMove(-1)" aria-label="Vorheriger Monat">‹</button>
+                <h2 id="cal-title"></h2>
+                <button id="cal-next" onclick="calMove(1)" aria-label="Nächster Monat">›</button>
+            </div>
+            <div class="cal-grid" id="cal-grid"></div>
+            <div class="legend">
+                <span><i style="background:var(--green)"></i>frei</span>
+                <span><i style="background:#e0a21b"></i>teilweise besetzt</span>
+                <span><i style="background:#c9503e"></i>besetzt</span>
+                <span><i style="background:#c9cfc4"></i>Ferien / kein Dienst</span>
+            </div>
+        </div>
+        <div id="detail"></div>
+    </div>
+
+    <div id="view-list" style="display:none">
+        <label style="font-size:0.8rem;color:var(--gray);display:flex;gap:0.35rem;margin-bottom:0.5rem"><input type="checkbox" id="show-past" onchange="renderList()"> vergangene Termine anzeigen</label>
+        <div id="termine"><div class="empty-state">Lade Termine …</div></div>
+    </div>
 
     <!-- Admin: Termin hinzufügen -->
     <form class="form-section admin-only" onsubmit="submitTermin(event)">
@@ -300,54 +357,121 @@ async function load() {
     render();
 }
 
+let view = 'cal', calMonth = null /* 'YYYY-MM' */, selectedId = null;
+
+function setView(v) {
+    view = v;
+    document.getElementById('vt-cal').classList.toggle('active', v === 'cal');
+    document.getElementById('vt-list').classList.toggle('active', v === 'list');
+    document.getElementById('view-cal').style.display  = v === 'cal'  ? '' : 'none';
+    document.getElementById('view-list').style.display = v === 'list' ? '' : 'none';
+    render();
+}
+
+function cardHtml(t, nextId) {
+    const today = todayIso();
+    const n = t.helfer.length, full = n >= t.max_helfer;
+    const cls = ['termin-card', t.datum < today ? 'past' : '', t.gesperrt ? 'closed' : '', t.id === nextId ? 'next' : ''].join(' ');
+    const chips = t.helfer.map(h => `<span class="chip">${esc(h.name)}<button data-act="del-helfer" data-id="${h.id}" title="Entfernen">✕</button></span>`).join('');
+    const badge = t.gesperrt ? '' : `<span class="badge${full ? ' full' : ''}">${n}/${t.max_helfer}</span>`;
+    return `<div class="${cls}">
+        <div class="termin-head">
+            <div>
+                <div class="termin-date">${fmtDate(t.datum)} <span class="termin-kw">KW ${t.kw ?? ''}</span></div>
+                ${t.hinweis ? `<div class="termin-note">${esc(t.hinweis)}</div>` : ''}
+            </div>
+            <span class="spacer"></span>${badge}
+        </div>
+        ${chips ? `<div class="chips">${chips}</div>` : ''}
+        <div class="card-actions">
+            ${t.gesperrt ? '' : `<button class="btn-small" data-act="helfen" data-id="${t.id}" ${full && !isAdmin ? 'disabled' : ''}>${full ? (isAdmin ? '+ Admin-Eintrag' : '✓ Besetzt') : '🙋 Ich übernehme'}</button>`}
+            <button class="btn-small ghost admin-only" data-act="edit" data-id="${t.id}">✏️ Bearbeiten</button>
+            <button class="btn-small danger admin-only" data-act="del-termin" data-id="${t.id}">🗑️</button>
+        </div>
+    </div>`;
+}
+
 function render() {
+    const today = todayIso();
+    const free = termine.filter(t => !t.gesperrt && t.datum >= today).reduce((n, t) => n + Math.max(0, t.max_helfer - t.helfer.length), 0);
+    document.getElementById('summary').textContent = `${free} Plätze frei`;
+    if (!termine.length) {
+        document.getElementById('termine').innerHTML = '<div class="empty-state">Keine Termine vorhanden.</div>';
+        document.getElementById('cal-grid').innerHTML = '<div class="empty-state" style="grid-column:1/-1">Keine Termine vorhanden.</div>';
+        return;
+    }
+    // Auswahl/Monat initialisieren: nächster freier Termin, sonst nächster Termin, sonst letzter
+    if (!termine.some(t => t.id === selectedId)) {
+        const t = termine.find(t => t.datum >= today && !t.gesperrt && t.helfer.length < t.max_helfer)
+               || termine.find(t => t.datum >= today) || termine[termine.length - 1];
+        selectedId = t.id; calMonth = t.datum.slice(0, 7);
+    }
+    if (view === 'cal') renderCalendar(); else renderList();
+}
+
+function renderCalendar() {
+    const today = todayIso();
+    const [y, m] = calMonth.split('-').map(Number);
+    const months = [...new Set(termine.map(t => t.datum.slice(0, 7)))];
+    const idx = months.indexOf(calMonth);
+    document.getElementById('cal-prev').disabled = idx <= 0;
+    document.getElementById('cal-next').disabled = idx === -1 || idx >= months.length - 1;
+    document.getElementById('cal-title').textContent = new Date(y, m - 1, 1).toLocaleDateString('de-DE', { month: 'long', year: 'numeric' });
+
+    const byDate = Object.fromEntries(termine.map(t => [t.datum, t]));
+    const lead = (new Date(y, m - 1, 1).getDay() + 6) % 7;   // Montag = 0
+    const days = new Date(y, m, 0).getDate();
+    let html = ['Mo','Di','Mi','Do','Fr','Sa','So'].map((d, i) => `<div class="cal-dow${i === 2 ? ' wed' : ''}">${d}</div>`).join('');
+    for (let i = 0; i < lead; i++) html += '<div class="cal-day other"></div>';
+    for (let d = 1; d <= days; d++) {
+        const iso = `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        const t = byDate[iso];
+        const base = 'cal-day' + (iso === today ? ' today' : '');
+        if (!t) { html += `<div class="${base}"><span class="num">${d}</span></div>`; continue; }
+        const n = t.helfer.length;
+        const st = t.gesperrt ? 'closed' : n >= t.max_helfer ? 'full' : n > 0 ? 'part' : 'free';
+        const cnt = t.gesperrt ? '–' : `${n}/${t.max_helfer}`;
+        html += `<button class="${base} termin s-${st}${iso < today ? ' past' : ''}${t.id === selectedId ? ' selected' : ''}" data-act="select" data-id="${t.id}"><span class="num">${d}</span><span class="cnt">${cnt}</span></button>`;
+    }
+    document.getElementById('cal-grid').innerHTML = html;
+
+    const sel = termine.find(t => t.id === selectedId);
+    document.getElementById('detail').innerHTML = sel ? cardHtml(sel) : '';
+}
+
+function calMove(dir) {
+    const months = [...new Set(termine.map(t => t.datum.slice(0, 7)))];
+    const i = months.indexOf(calMonth) + dir;
+    if (i < 0 || i >= months.length) return;
+    calMonth = months[i];
+    const first = termine.find(t => t.datum.startsWith(calMonth));
+    if (first) selectedId = first.id;
+    renderCalendar();
+}
+
+function renderList() {
     const showPast = document.getElementById('show-past').checked;
     const today = todayIso();
     const nextId = (termine.find(t => t.datum >= today && !t.gesperrt && t.helfer.length < t.max_helfer) || {}).id;
-
-    const open = termine.filter(t => !t.gesperrt);
-    const free = open.filter(t => t.datum >= today).reduce((n, t) => n + Math.max(0, t.max_helfer - t.helfer.length), 0);
-    document.getElementById('summary').textContent = `${free} Plätze frei`;
-
     const list = termine.filter(t => showPast || t.datum >= today);
     const c = document.getElementById('termine');
     if (!list.length) { c.innerHTML = '<div class="empty-state">Keine Termine vorhanden.</div>'; return; }
-
     let html = '', lastMonth = '';
     for (const t of list) {
         const month = parseDate(t.datum).toLocaleDateString('de-DE', { month: 'long', year: 'numeric' });
         if (month !== lastMonth) { html += `<div class="month-title">${month}</div>`; lastMonth = month; }
-
-        const n = t.helfer.length, full = n >= t.max_helfer;
-        const cls = ['termin-card', t.datum < today ? 'past' : '', t.gesperrt ? 'closed' : '', t.id === nextId ? 'next' : ''].join(' ');
-        const chips = t.helfer.map(h => `<span class="chip">${esc(h.name)}<button data-act="del-helfer" data-id="${h.id}" title="Entfernen">✕</button></span>`).join('');
-        const badge = t.gesperrt ? '' : `<span class="badge${full ? ' full' : ''}">${n}/${t.max_helfer}</span>`;
-
-        html += `<div class="${cls}">
-            <div class="termin-head">
-                <div>
-                    <div class="termin-date">${fmtDate(t.datum)} <span class="termin-kw">KW ${t.kw ?? ''}</span></div>
-                    ${t.hinweis ? `<div class="termin-note">${esc(t.hinweis)}</div>` : ''}
-                </div>
-                <span class="spacer"></span>${badge}
-            </div>
-            ${chips ? `<div class="chips">${chips}</div>` : ''}
-            <div class="card-actions">
-                ${t.gesperrt ? '' : `<button class="btn-small" data-act="helfen" data-id="${t.id}" ${full && !isAdmin ? 'disabled' : ''}>${full ? (isAdmin ? '+ Admin-Eintrag' : '✓ Besetzt') : '🙋 Ich übernehme'}</button>`}
-                <button class="btn-small ghost admin-only" data-act="edit" data-id="${t.id}">✏️ Bearbeiten</button>
-                <button class="btn-small danger admin-only" data-act="del-termin" data-id="${t.id}">🗑️</button>
-            </div>
-        </div>`;
+        html += cardHtml(t, nextId);
     }
     c.innerHTML = html;
 }
 
-document.getElementById('termine').addEventListener('click', e => {
+document.querySelector('main').addEventListener('click', e => {
     const b = e.target.closest('[data-act]');
     if (!b) return;
     const id = b.dataset.id;
     const t = termine.find(x => x.id === id);
     switch (b.dataset.act) {
+        case 'select':      selectedId = id; renderCalendar(); document.getElementById('detail').scrollIntoView({ behavior: 'smooth', block: 'nearest' }); break;
         case 'helfen':      openHelfen(t); break;
         case 'edit':        openEdit(t); break;
         case 'del-termin':  deleteTermin(t); break;
