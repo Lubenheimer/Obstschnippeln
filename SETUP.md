@@ -21,7 +21,7 @@ Supabase → Project Settings → API → *Project URL* und *publishable key* ko
 3. URL: `https://DEIN-NAME.github.io/obstschnippeln/`
 
 ## Bedienung
-- **Eltern:** Termin wählen → „Ich übernehme" → Name eingeben. Standard: 2 Helfer pro Mittwoch.
+- **Eltern:** Termin wählen → „Ich übernehme" → Name eingeben. Standard: 1 Helfer pro Mittwoch.
 - **Admin** (unten „🔒 Admin", Login mit E-Mail + Passwort): Einträge entfernen, Termine bearbeiten (Hinweis, Helferzahl, sperren), Termine hinzufügen/löschen, auch bei vollen Terminen eintragen. Alles landet im Änderungsprotokoll.
 
 ## Sicherheit

@@ -10,7 +10,7 @@ CREATE TABLE termine (
     kw         INT,
     gesperrt   BOOLEAN NOT NULL DEFAULT false,
     hinweis    TEXT,
-    max_helfer INT NOT NULL DEFAULT 2,
+    max_helfer INT NOT NULL DEFAULT 1,
     created_at TIMESTAMPTZ DEFAULT now()
 );
 

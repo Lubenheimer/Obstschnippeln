@@ -216,7 +216,7 @@
         <h3>➕ Termin hinzufügen</h3>
         <div class="form-group"><label>Datum</label><input type="date" id="new-datum" required></div>
         <div class="form-group"><label>Hinweis (optional, z. B. „Ausflug“)</label><input type="text" id="new-hinweis" maxlength="60"></div>
-        <div class="form-group"><label>Benötigte Helfer</label><input type="number" id="new-max" min="1" max="20" value="2" required></div>
+        <div class="form-group"><label>Benötigte Helfer</label><input type="number" id="new-max" min="1" max="20" value="1" required></div>
         <button class="btn">Termin speichern</button>
     </form>
 
@@ -532,7 +532,7 @@ async function submitTermin(ev) {
     const { data, error } = await db.from('termine').insert({ datum, hinweis, max_helfer }).select().single();
     if (error) { showToast(error.code === '23505' ? 'Termin existiert bereits' : 'Fehler beim Speichern', true); return; }
     await logChange('termine', data.id, 'eintrag', null, { name: data.datum }, 'Admin');
-    ev.target.reset(); document.getElementById('new-max').value = '2';
+    ev.target.reset(); document.getElementById('new-max').value = '1';
     showToast('✅ Termin angelegt'); load();
 }
 
