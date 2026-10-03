@@ -137,7 +137,7 @@
         button.stat { cursor: pointer; font: inherit; color: inherit; transition: transform .2s, box-shadow .2s; }
         button.stat:hover { transform: translateY(-3px); box-shadow: 0 4px 8px rgba(20,60,30,.08), 0 20px 48px rgba(20,60,30,.18); }
         button.stat .val { font-size: clamp(1.15rem, 3.6vw, 1.6rem); }
-        .stat .go { display: inline-block; margin-top: .45rem; font-size: .78rem; font-weight: 800; color: var(--g2); }
+        .stat .go { display: inline-block; margin-top: .45rem; font-size: .78rem; font-weight: 800; color: var(--coral2); }
 
         @keyframes rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
 
@@ -164,8 +164,8 @@
         .lg { display: inline-flex; align-items: center; gap: .4rem; font-size: .78rem; font-weight: 600; color: var(--ink-soft);
               background: var(--surface); border: 1px solid var(--line); padding: .25rem .7rem; border-radius: 99px; }
         .lg i { width: .8rem; height: .8rem; border-radius: 5px; display: inline-block; }
-        .i-free { background: linear-gradient(135deg, var(--g2), var(--g3)); }
-        .i-full { background: linear-gradient(135deg, var(--coral1), var(--coral2)); }
+        .i-free { background: linear-gradient(135deg, var(--coral1), var(--coral2)); }
+        .i-full { background: linear-gradient(135deg, var(--g2), var(--g3)); }
         .i-closed { background: var(--closed); }
 
         /* ── JAHRESKALENDER ── */
@@ -180,9 +180,9 @@
         .cal-head { display: flex; align-items: baseline; justify-content: space-between; gap: .5rem; margin-bottom: .65rem; }
         .cal-head h3 { font-size: 1.12rem; font-weight: 800; letter-spacing: -.01em; }
         .cal-head h3 span { color: var(--ink-soft); font-weight: 600; font-size: .85em; }
-        .cal-meta { font-size: .72rem; font-weight: 800; color: var(--g1); background: rgba(63,163,77,.14); padding: .15rem .55rem; border-radius: 99px; white-space: nowrap; }
-        .cal-meta.done { color: var(--coral2); background: rgba(226,72,58,.12); }
-        @media (prefers-color-scheme: dark) { .cal-meta { color: var(--g3); } .cal-meta.done { color: var(--coral1); } }
+        .cal-meta { font-size: .72rem; font-weight: 800; color: var(--coral2); background: rgba(226,72,58,.12); padding: .15rem .55rem; border-radius: 99px; white-space: nowrap; }
+        .cal-meta.done { color: var(--g1); background: rgba(63,163,77,.14); }
+        @media (prefers-color-scheme: dark) { .cal-meta { color: var(--coral1); } .cal-meta.done { color: var(--g3); } }
         .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
         .cal-dow { text-align: center; font-size: .62rem; font-weight: 800; letter-spacing: .05em; color: var(--ink-soft); padding-bottom: .2rem; text-transform: uppercase; }
         .cal-dow.wed { color: var(--g2); }
@@ -199,13 +199,13 @@
         .cal-day.termin:hover { transform: translateY(-3px) scale(1.12); filter: brightness(1.07); z-index: 2; }
         .cal-day.termin:active { transform: scale(.94); }
         .cal-day.termin:focus-visible { outline: 3px solid var(--sun); outline-offset: 2px; }
-        .s-free   { background: linear-gradient(135deg, var(--g2), var(--g3)); }
-        .s-full   { background: linear-gradient(135deg, var(--coral1), var(--coral2)); }
+        .s-free   { background: linear-gradient(135deg, var(--coral1), var(--coral2)); }
+        .s-full   { background: linear-gradient(135deg, var(--g2), var(--g3)); }
         .s-closed { background: var(--closed); color: var(--ink-soft); box-shadow: none; }
         .s-full::after { content: "✓"; position: absolute; right: 3px; top: 0; font-size: .5rem; opacity: .9; }
         .cal-day.past.termin { opacity: .38; box-shadow: none; }
         .cal-day.next { animation: pulse 2s ease-in-out infinite; }
-        @keyframes pulse { 0%,100% { box-shadow: 0 4px 10px rgba(20,60,30,.18), 0 0 0 0 rgba(166,211,63,.7); } 50% { box-shadow: 0 4px 10px rgba(20,60,30,.18), 0 0 0 8px rgba(166,211,63,0); } }
+        @keyframes pulse { 0%,100% { box-shadow: 0 4px 10px rgba(20,60,30,.18), 0 0 0 0 rgba(255,122,89,.7); } 50% { box-shadow: 0 4px 10px rgba(20,60,30,.18), 0 0 0 8px rgba(255,122,89,0); } }
 
         .skeleton { height: 330px; border-radius: var(--radius); background: linear-gradient(100deg, var(--surface) 30%, var(--surface-2) 50%, var(--surface) 70%); background-size: 200% 100%; animation: shimmer 1.3s linear infinite; border: 1px solid var(--line); }
         @keyframes shimmer { to { background-position: -200% 0; } }
@@ -222,7 +222,7 @@
         }
         .row:hover { transform: translateX(4px); box-shadow: var(--shadow-md); }
         .row.past { opacity: .5; }
-        .row.next { border-color: var(--g2); box-shadow: 0 0 0 3px rgba(63,163,77,.18), var(--shadow-sm); }
+        .row.next { border-color: var(--coral1); box-shadow: 0 0 0 3px rgba(255,122,89,.2), var(--shadow-sm); }
         .row-main { flex: 1; min-width: 0; }
         .row-title { font-weight: 800; font-size: .98rem; }
         .row-sub { font-size: .8rem; color: var(--ink-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -236,13 +236,13 @@
         .leaf .m { display: block; background: linear-gradient(135deg, var(--g1), var(--g2)); color: #fff; font-size: .62rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; padding: .15rem 0; }
         .leaf .d { display: block; font-size: 1.5rem; font-weight: 800; line-height: 1.35; letter-spacing: -.03em; }
         .leaf.closed .m { background: var(--closed); color: var(--ink-soft); }
-        .leaf.full .m { background: linear-gradient(135deg, var(--coral1), var(--coral2)); }
+        .leaf.free .m { background: linear-gradient(135deg, var(--coral1), var(--coral2)); }
 
         .pill { display: inline-flex; align-items: center; gap: .3rem; font-size: .72rem; font-weight: 800; padding: .22rem .65rem; border-radius: 99px; white-space: nowrap; }
-        .pill.free   { background: rgba(63,163,77,.15); color: var(--g1); }
-        .pill.full   { background: rgba(226,72,58,.13); color: var(--coral2); }
+        .pill.free   { background: rgba(226,72,58,.13); color: var(--coral2); }
+        .pill.full   { background: rgba(63,163,77,.15); color: var(--g1); }
         .pill.closed { background: var(--surface-2); color: var(--ink-soft); border: 1px solid var(--line); }
-        @media (prefers-color-scheme: dark) { .pill.free { color: var(--g3); } .pill.full { color: var(--coral1); } }
+        @media (prefers-color-scheme: dark) { .pill.free { color: var(--coral1); } .pill.full { color: var(--g3); } }
 
         .avatar {
             flex: none; width: 2.3rem; height: 2.3rem; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
@@ -319,7 +319,7 @@
         .who span.nm { flex: 1; min-width: 0; overflow-wrap: anywhere; }
         .who button { background: none; border: none; color: var(--coral2); cursor: pointer; font-size: 1rem; padding: .3rem; display: none; }
         .admin-mode .who button { display: block; }
-        .free-slot { padding: .9rem; text-align: center; border: 2px dashed rgba(63,163,77,.45); border-radius: 16px; color: var(--g2); font-weight: 800; font-size: .9rem; margin-bottom: .55rem; }
+        .free-slot { padding: .9rem; text-align: center; border: 2px dashed rgba(226,72,58,.45); border-radius: 16px; color: var(--coral2); font-weight: 800; font-size: .9rem; margin-bottom: .55rem; }
         .detail-actions { display: flex; gap: .5rem; margin-top: .8rem; }
         .detail-actions .btn-small { flex: 1; justify-content: center; }
 
@@ -419,8 +419,8 @@
 
     <div id="view-cal">
         <div class="legend">
-            <span class="lg"><i class="i-free"></i>frei – antippen &amp; eintragen</span>
-            <span class="lg"><i class="i-full"></i>vergeben</span>
+            <span class="lg"><i class="i-free"></i>offen – antippen &amp; eintragen</span>
+            <span class="lg"><i class="i-full"></i>vergeben ✓</span>
             <span class="lg"><i class="i-closed"></i>Ferien / kein Dienst</span>
         </div>
         <div class="year-grid" id="year-grid">
